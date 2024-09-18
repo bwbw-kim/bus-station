@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>버스 정류장 알림받기</title>
+    <link rel="stylesheet" th:href="@{/css/index.css}" />
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/latest/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+</head>
+<body>
+    <div id="status"></div>
+	<div id="map" style="width:100%;height:600px;"></div>
+    <a id="refresh" href="#" class="float">
+        <i class="fa fa-refresh my-float"></i>
+    </a>
+    <div id="bus-modal" class="modal">
+        <div class="modal-content">
+            
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-green btn-flat">닫기</a>
+        </div>
+    </div>
+</body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=a64f76d84059ef71e5ffc7289231a325&libraries=services,clusterer,drawing"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script th:src="@{/js/index.js}"></script>
+</html>
