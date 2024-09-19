@@ -9,33 +9,43 @@ import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.stream.StreamSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import com.bus.alarm.DTO.BusstopDTO;
-import com.bus.alarm.config.ExternalApiConfig;
+import com.bus.alarm.DTO.DatabaseDTO.BusstopDTO;
+import com.bus.alarm.DTO.DatabaseDTO.SubscribeDTO;
+import com.bus.alarm.config.Config;
 import com.bus.alarm.entity.BusstopEntity;
+import com.bus.alarm.entity.SubscribeEntity;
 import com.bus.alarm.repository.BusstopRepository;
+import com.bus.alarm.repository.SubscribeRepository;
 import com.bus.alarm.utils.HttpUtils;
+import com.bus.alarm.utils.MessageUtils;
 
 @Component
 public class BusStopService {
 
     @Autowired
-    private ExternalApiConfig externalApiConfig;
+    private Config config;
+
+    @Autowired
+    private SubscribeRepository subscribeRepository;
     
     @Autowired
-    BusstopRepository busstopRepository;
+    private BusstopRepository busstopRepository;
 
     @Autowired
     private HttpUtils httpUtils;
+
+    @Autowired
+    private MessageUtils messageUtils;
 
     public List<BusstopDTO> getBusstopsInRange(double smallLatitude, double bigLatitude, double smallLongitude, double bigLongitude) {
         List<BusstopEntity> queryResult = busstopRepository.findByLongitudeBetweenAndLatitudeBetween(smallLongitude, bigLongitude, smallLatitude, bigLatitude);
@@ -46,7 +56,7 @@ public class BusStopService {
     }
 
     private String getBusName(String routeId) {
-        String url = externalApiConfig.getBusRouteUrl() + "?" + "serviceKey=" + externalApiConfig.getBusStopApiToken() + "&routeId=" + routeId;
+        String url = config.getBusRouteUrl() + "?" + "serviceKey=" + config.getBusStopApiToken() + "&routeId=" + routeId;
         String response = httpUtils.getRequest(url);
         String busName = "";
         try {
@@ -65,10 +75,10 @@ public class BusStopService {
         return busName;
     }
 
-    public Map<String, String> getBusArrivalMap(String stationId) {
-        String url = externalApiConfig.getArrivalListUrl() + "?" + "serviceKey=" + externalApiConfig.getBusStopApiToken() + "&stationId=" + stationId;
+    public Map<String, Map<String, String>> getBusArrivalMap(String stationId) {
+        String url = config.getArrivalListUrl() + "?" + "serviceKey=" + config.getBusStopApiToken() + "&stationId=" + stationId;
         String response = httpUtils.getRequest(url);
-        Map<String, String> busArrivalMap = new HashMap<String, String>();
+        Map<String, Map<String, String>> busArrivalMap = new HashMap<String, Map<String, String>>();
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -76,14 +86,39 @@ public class BusStopService {
             doc.getDocumentElement().normalize();
             NodeList nodeList = doc.getElementsByTagName("busArrivalList");
             for (int i = 0; i < nodeList.getLength(); i++) {
+                Map<String, String> busArrivalInfo = new HashMap<String, String>();
                 Element element = (Element) nodeList.item(i);
-                String busName = getBusName(element.getElementsByTagName("routeId").item(0).getTextContent());
+                String busId = element.getElementsByTagName("routeId").item(0).getTextContent();
+                String busNumber = getBusName(busId);
                 String location = element.getElementsByTagName("locationNo1").item(0).getTextContent();
-                busArrivalMap.put(busName, location);
+                busArrivalInfo.put("busNumber", busNumber);
+                busArrivalInfo.put("location", location);
+                busArrivalInfo.put("busId", busId);
+                busArrivalMap.put(busId, busArrivalInfo);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return busArrivalMap;
+    }
+
+    public void checkSubscriberBus(){
+        int page = 0;
+        int size = 10;
+        Pageable pageable;
+        while(true) {
+            pageable = PageRequest.of(page, size);
+            Page<SubscribeEntity> result = subscribeRepository.findAll(pageable);
+            if (result.getContent().size() <= 0) break;
+            for(SubscribeEntity entity : result) {
+                SubscribeDTO subscribeDTO = SubscribeDTO.toDTO(entity);
+                Map<String, Map<String, String>> busArrivalMap= getBusArrivalMap(subscribeDTO.getBusStopId());
+                if (busArrivalMap.containsKey(subscribeDTO.getBusId()) && Integer.parseInt(busArrivalMap.get(subscribeDTO.getBusId()).get("location")) <= 2) {
+                    messageUtils.sendMessage(config.getTargetUser(), config.getTargetUser(), "곧 " + getBusName(subscribeDTO.getBusId()) + " 버스가 도착해요!");
+                    subscribeRepository.deleteById(subscribeDTO.getId());
+                }
+            }
+            page++;
+        }
     }
 }

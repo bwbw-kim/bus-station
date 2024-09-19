@@ -1,9 +1,9 @@
-package com.bus.alarm.DTO;
+package com.bus.alarm.DTO.ApiDTO;
 
 import lombok.Data;
 
 @Data
-public class CoordinatesRequest {
+public class CoordinatesRequestDTO {
     private double smallLatitude;
     private double bigLatitude;
     private double smallLongitude;

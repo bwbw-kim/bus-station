@@ -1,4 +1,4 @@
-package com.bus.alarm.DTO;
+package com.bus.alarm.DTO.DatabaseDTO;
 import com.bus.alarm.entity.SubscribeEntity;
 
 import lombok.Getter;
@@ -13,15 +13,16 @@ import lombok.ToString;
 @ToString
 public class SubscribeDTO {    
     private Long id;
-    private String subscriberKakaoId;
+    private String subscriberPhoneNumber;
     private String busStopId;
     private String busId;
     
     public static SubscribeDTO toDTO(SubscribeEntity subscribeEntity){
         SubscribeDTO subscribeDTO = new SubscribeDTO();
+        subscribeDTO.setId(subscribeEntity.getId());
         subscribeDTO.setBusId(subscribeEntity.getBusId());
         subscribeDTO.setBusStopId(subscribeEntity.getBusStopId());
-        subscribeDTO.setSubscriberKakaoId(subscribeEntity.getSubscriberKakaoId());
+        subscribeDTO.setSubscriberPhoneNumber(subscribeEntity.getSubscriberPhoneNumber());
         return subscribeDTO;
     }
 
@@ -29,7 +30,7 @@ public class SubscribeDTO {
         SubscribeEntity subscribeEntity = new SubscribeEntity();
         subscribeEntity.setBusId(subscribeDTO.getBusId());
         subscribeEntity.setBusStopId(subscribeDTO.getBusStopId());
-        subscribeEntity.setSubscriberKakaoId(subscribeDTO.getSubscriberKakaoId());
+        subscribeEntity.setSubscriberPhoneNumber(subscribeDTO.getSubscriberPhoneNumber());
         return subscribeEntity;
     }
 }

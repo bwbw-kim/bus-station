@@ -5,9 +5,9 @@ import org.springframework.stereotype.Component;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import com.bus.alarm.DTO.BusstopDTO;
-import com.bus.alarm.DTO.SubscribeDTO;
-import com.bus.alarm.config.ExternalApiConfig;
+import com.bus.alarm.DTO.DatabaseDTO.BusstopDTO;
+import com.bus.alarm.DTO.DatabaseDTO.SubscribeDTO;
+import com.bus.alarm.config.Config;
 import com.bus.alarm.repository.BusstopRepository;
 import com.bus.alarm.repository.SubscribeRepository;
 import com.bus.alarm.utils.HttpUtils;
@@ -16,7 +16,7 @@ import com.bus.alarm.utils.HttpUtils;
 public class BusstopCollectorService {
 
     @Autowired
-    private ExternalApiConfig externalApiConfig;
+    private Config config;
 
     @Autowired
     private BusstopRepository busStopRepository;
@@ -28,7 +28,7 @@ public class BusstopCollectorService {
         int page = 0;
         int perPage = 200;
         while (true) {
-            String url = externalApiConfig.getBusStopApiUrl() + "?" + "page=" + String.valueOf(page) + "&perPage=" + String.valueOf(perPage) + "&serviceKey=" + externalApiConfig.getBusStopApiToken();
+            String url = config.getBusStopApiUrl() + "?" + "page=" + String.valueOf(page) + "&perPage=" + String.valueOf(perPage) + "&serviceKey=" + config.getBusStopApiToken();
             String response = httpUtils.getRequest(url);
             JSONObject jsonResponse = new JSONObject(response);
             if (jsonResponse.getInt("currentCount") <= 0) break;

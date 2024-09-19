@@ -1,4 +1,4 @@
-package com.bus.alarm.DTO;
+package com.bus.alarm.DTO.DatabaseDTO;
 import com.bus.alarm.entity.BusstopEntity;
 import com.bus.alarm.entity.SubscribeEntity;
 

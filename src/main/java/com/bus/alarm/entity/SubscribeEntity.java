@@ -24,7 +24,7 @@ public class SubscribeEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String subscriberKakaoId;
+    private String subscriberPhoneNumber;
 
     @Column(nullable = false)
     private String busStopId;
